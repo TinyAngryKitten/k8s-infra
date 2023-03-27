@@ -1,0 +1,23 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: http-mqtt-ingress
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt
+    traefik.ingress.kubernetes.io/router.tls: "true" #Add this to access from https
+
+spec:
+  rules:
+  - http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: http-mqtt
+            port:
+              number: 80
+  tls:
+      - hosts:
+        - tinyangrykitten.dev
+        secretName: letsencrypt

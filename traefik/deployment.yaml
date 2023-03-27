@@ -1,0 +1,43 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: traefik-deployment
+  labels:
+    app: traefik
+
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: traefik
+  template:
+    metadata:
+      labels:
+        app: traefik
+    spec:
+      serviceAccountName: traefik-account
+      containers:
+        - name: traefik
+          image: traefik:v2.9
+          args:
+            - --api.dashboard=true
+            - --api.insecure=true
+            - --providers.kubernetescrd
+            - --providers.kubernetescrd.namespaces=default
+            - --providers.kubernetesingress=true
+            - --entryPoints.web.address=:80
+            - --entrypoints.websecure.address=:443
+            - --entrypoints.web.http.redirections.entryPoint.to=websecure
+            - --entrypoints.web.http.redirections.entryPoint.scheme=https
+            - --entrypoints.web.http.redirections.entrypoint.permanent=true
+            - --entrypoints.websecure.http.middlewares=default-basicauth@kubernetescrd
+            - --entrypoints.web.http.middlewares=default-basicauth@kubernetescrd
+            - --entrypoints.traefik.http.middlewares=default-basicauth@kubernetescrd
+            - --log.level=DEBUG
+          ports:
+            - name: web
+              containerPort: 80
+            - name: https
+              containerPort: 443
+            - name: dashboard
+              containerPort: 8080
